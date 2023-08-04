@@ -35,8 +35,8 @@ function getWgs84BoundByRCL(X, Y, Z, type) {
     TileLnglatTrans = TileLnglatTransform.TileLnglatTransformGaode;
     wgs84NW = TileLnglatTrans.pixelToLnglat(0, 0, X, Y, Z)
     wgs84SE = TileLnglatTrans.pixelToLnglat(0, 0, X + 1, Y + 1, Z)
-    arrNW = gcoord.transform([wgs84NW.lng, wgs84SE.lat], gcoord.WGS84, gcoord.GCJ02)
-    arrSE = gcoord.transform([wgs84NW.lng, wgs84SE.lat], gcoord.WGS84, gcoord.GCJ02)
+    arrNW = gcoord.transform([wgs84NW.lng, wgs84NW.lat], gcoord.GCJ02, gcoord.WGS84)
+    arrSE = gcoord.transform([wgs84SE.lng, wgs84SE.lat], gcoord.GCJ02, gcoord.WGS84)
     gcj02NW = {
       lng: arrNW[0],
       lat: arrNW[1]
@@ -45,13 +45,20 @@ function getWgs84BoundByRCL(X, Y, Z, type) {
       lng: arrSE[0],
       lat: arrSE[1]
     }
+    gcj02SW = {
+      lng: arrNW[0],
+      lat: arrSE[1]
+    }
+    gcj02NE = {
+      lng: arrSE[0],
+      lat: arrNW[1]
+    }
     return {
-      sw: wgs84SW,
-      ne: wgs84NE,
+      sw: gcj02SW,
+      ne: gcj02NE,
       nw: gcj02NW,
       se: gcj024SE
     }
-    break
   case 'bd09':
     const lngLatSW = gcoord.transform([resolutions[Z] * X * 256, resolutions[Z] * Y * 256], gcoord.BD09MC, gcoord.WGS84)
     const lngLatNE = gcoord.transform([resolutions[Z] * (X * 256 + 256), resolutions[Z] * (Y * 256 + 256)], gcoord.BD09MC, gcoord.WGS84)

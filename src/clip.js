@@ -19,11 +19,12 @@ class TileServices {
     this._tileSize = 256
     this._canvas = createCanvas(this._tileSize, this._tileSize)
   }
-  get84Tiles(x, y, z, fromCrs='wgs84') {
+  get84Tiles(x, y, z, fromCrs = 'wgs84', devicePixelRatio = 1) {
     if (Number.isNaN(x) || Number.isNaN(y) || Number.isNaN(z)) {
       return
     }
     const wgs84Bounds = getWgs84BoundByRCL(Number(x), Number(y), Number(z), fromCrs)
+    // console.log(wgs84Bounds)
     // 得到wgs84坐标
     if (this._options.type === 'gcj02') {
       // 得到需要的tile行列号
@@ -53,7 +54,6 @@ class TileServices {
     if (this._options.type === 'hzcg') {
       // 得到需要的tile行列号
       var level = z - 7
-      const wgs84Bounds = getWgs84BoundByRCL(Number(x), Number(y), Number(z), this._options.type)
       var minRC = hzcg.getHzRCLByWgs84LngLat(level, wgs84Bounds.nw)
       var maxRC = hzcg.getHzRCLByWgs84LngLat(level, wgs84Bounds.se)
       var getPos = (options) => {
@@ -155,6 +155,10 @@ class TileServices {
         // const ctx = this._canvas.getContext('2d')
         // this._canvas.width = this._tileSize
         // this._canvas.height = this._tileSize
+        const fail = res.find(i => !i.success)
+        if (fail) {
+          reject(fail.message)
+        }
         this._canvas.toBuffer((err, buffer) => {
           resolve({
             buffer,

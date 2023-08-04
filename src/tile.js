@@ -43,36 +43,54 @@ class TileConstructor {
       const cache = caches.get(key)
       if (cache) {
         this._requestCB(cache)
-        resolve()
+        resolve({success: true})
       } else {
         this.request = getImage({
           url,
           headers: this._headers
         }, (_err, img) => {
-          if (_err && backupUrl) {
-            delete this.request
-            this.request = getImage({
-              url: backupUrl,
-              headers: this._headers
-            }, (_backupErr, backupImg) => {
-              if (backupImg) {
-                this._requestCB(backupImg)
-                resolve()
+          if (_err) {
+            if (backupUrl) {
+              delete this.request
+              this.request = getImage({
+                url: backupUrl,
+                headers: this._headers
+              }, (_backupErr, backupImg) => {
+                if (_backupErr) {
+                  resolve({success: false, message: _backupErr})
+                  return
+                }
+                if (backupImg) {
+                  this._requestCB(backupImg)
+                  resolve({success: true})
+                }
+              })
+              this.request.cancel = () => {
+                this.request.abort()
               }
-            })
-            this.request.cancel = () => {
-              this.request.abort()
+              this.request.cancel = () => {
+                this.request.abort()
+              }
+              this.request.on('timeout', () => {
+                this.request.abort(); // Abort the request if it times out
+              });
+              this.request.setTimeout(5000)
+            } else {
+              resolve({success: false, message: _err})
             }
-          }
-          if (img) {
+          } else {
             this._requestCB(img)
-            resolve()
+            resolve({success: true})
           }
-          resolve()
         })
         this.request.cancel = () => {
           this.request.abort()
         }
+        this.request.on('timeout', () => {
+          this.request.abort(); // Abort the request if it times out
+          resolve({success: false, message: 'timeout'})
+        });
+        this.request.setTimeout(5000)
       }
 
     })
@@ -81,6 +99,8 @@ class TileConstructor {
     delete this.request
     if (this._ctx) {
       const ctx = this._ctx
+      ctx.imageSmoothingEnabled = false;
+      // ctx.imageRendering = 'crisp-edges';
       // ctx.scale(this._scale[0], this._scale[1])
       const position = this._getPos(this._options)
       ctx.drawImage(img, 0, 0, this._layer._tileSize, this._layer._tileSize, position.x, position.y, this._layer._tileSize * this._scale[0], this._layer._tileSize * this._scale[1])
