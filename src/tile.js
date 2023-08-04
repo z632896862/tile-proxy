@@ -76,7 +76,7 @@ class TileConstructor {
               });
               this.request.setTimeout(5000)
             } else {
-              resolve({success: false, message: _err})
+              resolve({success: true, message: _err})
             }
           } else {
             this._requestCB(img)
@@ -88,7 +88,7 @@ class TileConstructor {
         }
         this.request.on('timeout', () => {
           this.request.abort(); // Abort the request if it times out
-          resolve({success: false, message: 'timeout'})
+          resolve({success: true, message: 'timeout'})
         });
         this.request.setTimeout(5000)
       }
